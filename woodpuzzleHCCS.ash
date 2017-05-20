@@ -44,17 +44,13 @@ void test() {
 	cli_execute("/terminal educate digitize");
 }
 
-void setupTerminalCombatSkills(skill1, skill2) {
-	visit_url("choice.php?pwd&whichchoice=1191&option=1&input=educate " + skill1 + ".edu&pwd=" + my_hash());
-	visit_url("choice.php?pwd&whichchoice=1191&option=1&input=educate " + skill2 + ".edu&pwd=" + my_hash());
+void setupTerminalCombatSkills(string skill1, string skill2) {
+	cli_execute("terminal educate " + skill1);
+	cli_execute("terminal educate " + skill2);
 }
 
-void setupTerminalRollover(rolloverBuff) {
-	visit_url("choice.php?pwd&whichchoice=1191&option=1&input=enquiry " + rolloverBuff + ".enq&pwd=" + my_hash());
-}
-
-void setupSourceTerminal(sourceSkill) {
-	visit_url("choice.php?pwd&whichchoice=1191&option=1&input=" + sourceSkill + "&pwd=" + my_hash());
+void setupTerminalRollover(string rolloverBuff) {
+	cli_execute("terminal enquiry " + rolloverBuff);
 }
 
 void cheatMyst() {
@@ -91,6 +87,30 @@ void showerMp() {
 	}
 }
 
+void terminalItemBuff() {
+	visit_url("choice.php?pwd&whichchoice=1191&option=1&input=enhance items.enh&pwd=" + my_hash());
+}
+
+void odeDrink(item drink) {
+	
+}
+
+void chewingGumFish(item itemName) {
+	//todo: add catches to make sure we're fishing for right items
+	while (item_amount(itemName) < 1) {
+		cli_execute("buy chewing gum on a string");
+		use(1, $item[chewing gum on a string]);
+	}
+}
+
+void witchessFight(string monsterName) {
+	if(monsterName == "bishop") {
+		visit_url("campground.php?action=witchess"); //go to witchess fights
+            run_choice(1);
+		visit_url("choice.php?whichchoice=1182&option=1&piece=1942&pwd=" + my_hash(), false); //1942 piece: bishop
+	}
+}
+
 void mainWrapper() {
 
 	init_equipment();
@@ -113,14 +133,10 @@ void mainWrapper() {
 	//buy toy accordion, dramatic range, use carton of astral energy drinks
 	cli_execute("buy toy accordion");
 	cli_execute("buy dramatic™");
-	use(1, $item[157]);
+	use(1, $item[157]); //dramatic range
 	use(1, $item[carton of astral energy drinks]);
 	
-	//chewing gum for turtle totem
-	while (item_amount($item[turtle totem]) < 1) {
-		cli_execute("buy chewing gum on a string");
-		use(1, $item[chewing gum on a string]);
-	}
+	chewingGumFish($item[turtle totem]);
 	
 	//Cast ode, drink ice island long tea
 	
@@ -141,16 +157,7 @@ void mainWrapper() {
 	//5 free machine elf fights with extract, use abstraction: thought against a perceiver of sensations if available
 }
 
-void terminalItemBuff() {
-	visit_url("choice.php?pwd&whichchoice=1191&option=1&input=enhance items.enh&pwd=" + my_hash());
-}
-
-void odeDrink(item drink) {
-	
-}
-
 void main() {
-	setupSourceTerminal("educate digitize.edu");
-	setupSourceTerminal("educate digitize.edu");
+	witchessFight("bishop");
 	//mainWrapper();
 }
