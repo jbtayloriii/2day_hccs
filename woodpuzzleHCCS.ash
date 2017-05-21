@@ -1,4 +1,6 @@
 
+import woodpuzzleCombat.ash
+
 item itemCurrentBadge = $item[plastic detective badge]; //switch to which badge you have, or none 
 
 
@@ -91,6 +93,10 @@ void terminalItemBuff() {
 	visit_url("choice.php?pwd&whichchoice=1191&option=1&input=enhance items.enh&pwd=" + my_hash());
 }
 
+void setupDoghouse() {
+	set_property("choiceAdventure1106","2");
+}
+
 void odeDrink(item drink) {
 	
 }
@@ -114,6 +120,7 @@ void witchessFight(string monsterName) {
 void mainWrapper() {
 
 	init_equipment();
+	setupDoghouse();
 
 	cheatMyst();
 	tootOriole();
@@ -158,6 +165,8 @@ void mainWrapper() {
 }
 
 void main() {
-	witchessFight("bishop");
+	setupTerminalCombatSkills("digitize", "extract");
+	adv1($location[noob cave], -1, "combatNormal");
+	//witchessFight("bishop");
 	//mainWrapper();
 }

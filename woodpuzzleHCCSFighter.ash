@@ -5,15 +5,4 @@ void determineFight(skill [int] skills) {
 	}
 }
 
-
-
-
-
-
-
-void main() {
-	print($skill[1]);
-	print($item[1]);
-	
-	//determineFight(skills);
-}
+print("imported woodpuzzleCombat.ash")
