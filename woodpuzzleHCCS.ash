@@ -2,12 +2,40 @@
 import woodpuzzleCombat.ash
 
 item itemCurrentBadge = $item[plastic detective badge]; //switch to which badge you have, or none 
+boolean debugPrint = true; //verbose printing
 
+//helper functions
+void printd(string str) {
+	if(debugPrint) {
+		print(str);
+	}
+}
+
+int get_int(string prop) {
+	return get_property(prop).to_int();
+}
+
+int get_progress() {
+	return get_int("wp_progress");
+}
+
+void set_progress(int progress) {
+	set_property("wp_progress", progress);
+}
 
 //Mr store items
 boolean hasItemDeck = item_amount($item[8382]) > 0;
 boolean hasItemVIPKey = item_amount($item[Clan VIP Lounge key]) > 0;
 
+
+
+//Initialization
+
+void initializeRun() {
+	set_property("wp_script_day", 0);
+	set_property("wp_progress", 0);
+	set_property("wp_current_run", get_property("knownAscensions"));
+}
 
 //Let's equip some random IotMs that can give us free stats
 void init_equipment() {
@@ -63,6 +91,9 @@ void cheatMyst() {
 void tootOriole() {
 	print("Toot Oriole, letter from king, pork elf stones", "purple");
     visit_url("tutorial.php?action=toot");
+}
+
+void sellPorkElfGems() {
     if (item_amount($item[letter from King Ralph XI]) > 0) use(1, $item[letter from King Ralph XI]);
 	if (item_amount($item[pork elf goodies sack]) > 0) use(1, $item[pork elf goodies sack]);
 	foreach stone in $items[hamethyst, baconstone, porquoise] autosell(item_amount(stone), stone);
@@ -109,64 +140,134 @@ void chewingGumFish(item itemName) {
 	}
 }
 
-void witchessFight(string monsterName) {
+//test
+void witchessFight(string monsterName, string combatFunc) {
 	if(monsterName == "bishop") {
 		visit_url("campground.php?action=witchess"); //go to witchess fights
-            run_choice(1);
+        run_choice(1);
 		visit_url("choice.php?whichchoice=1182&option=1&piece=1942&pwd=" + my_hash(), false); //1942 piece: bishop
+		if(combatFunc != "") {
+			run_combat(combatFunc);
+		} else {
+			run_combat();
+		}
 	}
 }
 
-void mainWrapper() {
+//test
+void chateau_rest() {
+	int freeRests = total_free_rests() - get_int("timesRested");
+	if(freeRests > 0) {
+		printd("Resting at chateau");
+		
+		//test
+		visit_url("place.php?whichplace=chateau&action=chateau_restbox");
+	}
+}
 
-	init_equipment();
-	setupDoghouse();
-
-	cheatMyst();
-	tootOriole();
-	floundry();
-	showerMp();
-
+void castSkill(skill skillName) {
+	printd("Casting skill " + skillName);
+	if(!have_skill(skillName)) {
+		printd("Cannot cast " + skillName + ", do not have skill");
+		return;
+	}
+	int cost = mp_cost(skillName);
+	if(my_mp() < cost) {
+		chateau_rest();
+	}
 	
+	use_skill(1, skillName);
+	
+	
+}
+
+//implement
+void dayTwoPrep() {
+	printd("Day two breakfast");
+	castSkill($skill[perfect freeze]);
+	castSkill($skill[Advanced Saucecrafting]);
+	castSkill($skill[Advanced Cocktailcrafting]);
+	castSkill($skill[Summon Alice's Army Cards]);
+	castSkill($skill[Pastamastery]);
+	visit_url("campground.php?action=garden");
+	visit_url("campground.php?action=workshed");
+	visit_url("place.php?whichplace=chateau&action=chateau_desk2");
+}
+
+void dayOnePrep() {
 	setupTerminalRollover("stats");
 	setupTerminalCombatSkills("digitize", "extract");
 	
 	//Chateau juice bar
 	visit_url("place.php?whichplace=chateau&action=chateau_desk2");
-	
-	//harvest garden
 	visit_url("campground.php?action=garden");	
 	
-	//buy toy accordion, dramatic range, use carton of astral energy drinks
 	cli_execute("buy toy accordion");
 	cli_execute("buy dramatic™");
 	use(1, $item[157]); //dramatic range
-	use(1, $item[carton of astral energy drinks]);
+	if(item_amount($item[carton of astral energy drinks]) > 0) {
+		use(1, $item[carton of astral energy drinks]);	
+	}
+	//todo: add other astral things
+
+}
+
+void dayOne() {
+	if(get_progress() == 0) {
+		init_equipment();
+		setupDoghouse();
+
+		cheatMyst();
+		tootOriole();
+		sellPorkElfGems();
+		floundry();
+		showerMp();
+		
+		dayOnePrep();
+		
+		chewingGumFish($item[turtle totem]);
+		
+		//take machine elf
+		switchToFam($familiar[machine elf]);
+		
+		//radio
+		cli_execute("buy detuned radio");
+		change_mcd(10);
+		
+		set_progress(10);
+	}
 	
-	chewingGumFish($item[turtle totem]);
+	if(get_progress() == 10) {
+		witchessFight("bishop", "combatNormal");
 	
-	//Cast ode, drink ice island long tea
-	
-	//take machine elf
-	switchToFam($familiar[machine elf]);
-	
-	//radio
-	cli_execute("buy detuned radio");
-	change_mcd(10);
-	
+	}
+	return;
 	//witchess bishop with digitize and extract
 	
 	//drink sacramento wine
 	
 	//buff up: init and fam weight, phat loot, use items.enh in terminal, vip table
-	terminalItemBuff();
+	//terminalItemBuff();
 	
 	//5 free machine elf fights with extract, use abstraction: thought against a perceiver of sensations if available
 }
 
+void dayTwo() {
+	dayTwoPrep();
+	
+	witchessFight("bishop", "combatNormal");
+	
+}
+
 void main() {
-	setupTerminalCombatSkills("digitize", "extract");
-	adv1($location[noob cave], -1, "combatNormal");
-	//witchessFight("bishop");
-	//mainWrapper();
+	if(get_int("knownAscensions") != get_int("wp_current_run")) {
+		initializeRun();
+	}
+	if(get_int("wp_progress") < 400) {
+		//day one 0 - 400
+		dayOne();
+	} else {
+		//day two 400 - 800
+		dayTwo();
+	}
 }

@@ -30,17 +30,17 @@ boolean wpc_canTakeHit(monster opp) {
 
 string combatNormal(int round, monster opp, string text) {
 	print("normal combat script");
-	if($item[Time-Spinner].available_amount() > 0) {
+	if($item[Time-Spinner].available_amount() > 0 && round == 0) {
 		return "item time-spinner";
 	}
 	
-	if(wpc_canTakeHit(opp)) {
-		if(have_skill($skill[Extract])) {
-			print("trying to extract");
-			return "skill extract";
-		} else {
-			return "skill saucestorm";
-		}
+	if(have_skill($skill[entangling noodles]) && round == 1) {
+		return "skill entangling noodles";
+	}
+	
+	if(wpc_canTakeHit(opp) && have_skill($skill[Extract])) {
+		print("trying to extract");
+		return "skill extract";
 	} else {
 		return "skill saucestorm";
 	}
