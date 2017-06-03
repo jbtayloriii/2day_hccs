@@ -1,4 +1,4 @@
-
+import woodpuzzleAdventure.ash
 import woodpuzzleCombat.ash
 
 item itemCurrentBadge = $item[plastic detective badge]; //switch to which badge you have, or none 
@@ -27,7 +27,29 @@ void set_progress(int progress) {
 boolean hasItemDeck = item_amount($item[8382]) > 0;
 boolean hasItemVIPKey = item_amount($item[Clan VIP Lounge key]) > 0;
 
+void chateau_rest() {
+	int freeRests = total_free_rests() - get_int("timesRested");
+	if(freeRests > 0) {
+		printd("Resting at chateau");
+		
+		//test
+		visit_url("place.php?whichplace=chateau&action=chateau_restbox");
+	}
+}
 
+void castSkill(skill skillName) {
+	printd("Casting skill " + skillName);
+	if(!have_skill(skillName)) {
+		printd("Cannot cast " + skillName + ", do not have skill");
+		return;
+	}
+	int cost = mp_cost(skillName);
+	if(my_mp() < cost) {
+		chateau_rest();
+	}
+	
+	use_skill(1, skillName);
+}
 
 //Initialization
 
@@ -52,6 +74,20 @@ void init_equipment() {
 	if (item_amount($item[protonic accelerator pack]) > 0) {
 		equip($slot[back], $item[protonic accelerator pack]);
 	}
+}
+
+void drinkBooze(item it, int potency) {
+	if(item_amount(it) == 0) {
+		abort("Cannot drink " + it + ". You don't have the item.");
+	}
+	if(inebriety_limit() - my_inebriety() < potency) {
+		abort("Can't drink " + it + ". You're going to overdrink.");
+	}
+	if(have_effect($effect[Ode to Booze]) == 0) {
+		castSkill($skill[The Ode to Booze]);
+	}
+	
+	drink(1, it);
 }
 
 boolean switchToFam(familiar fam) {
@@ -147,38 +183,12 @@ void witchessFight(string monsterName, string combatFunc) {
         run_choice(1);
 		visit_url("choice.php?whichchoice=1182&option=1&piece=1942&pwd=" + my_hash(), false); //1942 piece: bishop
 		if(combatFunc != "") {
+			cb_initCombat();
 			run_combat(combatFunc);
 		} else {
 			run_combat();
 		}
 	}
-}
-
-//test
-void chateau_rest() {
-	int freeRests = total_free_rests() - get_int("timesRested");
-	if(freeRests > 0) {
-		printd("Resting at chateau");
-		
-		//test
-		visit_url("place.php?whichplace=chateau&action=chateau_restbox");
-	}
-}
-
-void castSkill(skill skillName) {
-	printd("Casting skill " + skillName);
-	if(!have_skill(skillName)) {
-		printd("Cannot cast " + skillName + ", do not have skill");
-		return;
-	}
-	int cost = mp_cost(skillName);
-	if(my_mp() < cost) {
-		chateau_rest();
-	}
-	
-	use_skill(1, skillName);
-	
-	
 }
 
 //implement
@@ -212,6 +222,12 @@ void dayOnePrep() {
 
 }
 
+void unlockSkeletonStore() {
+	visit_url("shop.php?whichshop=meatsmith&action=talk");
+	visit_url("choice.php?pwd&whichchoice=1059&option=1&choiceform1=Sure%2C+I%27ll+go+check+it+out.");
+	visit_url("choice.php?pwd&whichchoice=1059&option=3&choiceform1=Not+yet.+I%27ll+keep+looking.");
+}
+
 void dayOne() {
 	if(get_progress() == 0) {
 		init_equipment();
@@ -238,9 +254,25 @@ void dayOne() {
 	}
 	
 	if(get_progress() == 10) {
+		unlockSkeletonStore();
 		witchessFight("bishop", "combatNormal");
+		witchessFight("bishop", "combatNormal");
+		witchessFight("bishop", "combatNormal");
+		witchessFight("bishop", "combatNormal");
+		witchessFight("bishop", "combatNormal");
+		drinkBooze($item[sacramento wine], 1);
+		drinkBooze($item[sacramento wine], 1);
+		drinkBooze($item[sacramento wine], 1);
+		drinkBooze($item[sacramento wine], 1);
+		drinkBooze($item[sacramento wine], 1);
 	
+		set_progress(20);
 	}
+	
+	if(get_progress() == 20) {
+		adv_betterAdv($location[Deep Machine Tunnels], "combatNormal");
+	}
+	
 	return;
 	//witchess bishop with digitize and extract
 	

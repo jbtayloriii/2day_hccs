@@ -1,6 +1,69 @@
 print("imported woodpuzzleCombat.ash");
 
+//Constants
+boolean [skill] oneTimeSkills = $skills[Entangling Noodles, Extract, Digitize, Compress];
+boolean [item] oneTimeItems = $items[time-spinner];
+
 boolean verbose = true;
+
+boolean getSkillFlag(string name) {
+	return to_boolean(to_int(get_property("cb_skill_" + name)));
+}
+
+void setSkillFlag(string name, boolean val) {
+	set_property("cb_skill_" + name, to_int(val));
+}
+
+boolean getItemFlag(string name) {
+	return to_boolean(to_int(get_property("cb_item_" + name)));
+}
+
+void setItemFlag(string name, boolean val) {
+	set_property("cb_item_" + name, to_int(val));
+}
+
+/////////////////////////////////////////////
+
+void cb_initCombat() {
+	//initialize once per combat skills
+	foreach skl in oneTimeSkills {
+		setSkillFlag(skl, have_skill(skl));
+	}
+	
+	//initialize once per combat items
+	foreach it in oneTimeItems {
+		setItemFlag(it, item_amount(it) > 0);		
+	}
+}
+
+/////////////////////////////////////////////
+
+boolean canCastOTSkill(skill skl) {
+	return getSkillFlag(skl);
+}
+
+string castOTSkill(skill skl) {
+	if(canCastOTSkill(skl)) {
+		setSkillFlag(skl, false);
+		return "skill " + skl;	
+	}
+	return "";
+}
+
+boolean canUseOTItem(item it) {
+	return getItemFlag(it);
+}
+
+string useOTItem(item it) {
+	if(canUseOTItem(it)) {
+		setItemFlag(it, false);
+		return "item " + it;
+	}
+	return "";
+}
+
+
+///////////////////////////////////////
 
 void determineFight(skill [int] skills) {
 
@@ -30,16 +93,15 @@ boolean wpc_canTakeHit(monster opp) {
 
 string combatNormal(int round, monster opp, string text) {
 	print("normal combat script");
-	if($item[Time-Spinner].available_amount() > 0 && round == 0) {
-		return "item time-spinner";
+	if(canUseOTItem($item[Time-Spinner])) {
+		return useOTItem($item[Time-Spinner]);
 	}
 	
-	if(have_skill($skill[entangling noodles]) && round == 1) {
-		return "skill entangling noodles";
+	if(canCastOTSkill($skill[Entangling Noodles])) {
+		return castOTSkill($skill[Entangling Noodles]);
 	}
 	
 	if(wpc_canTakeHit(opp) && have_skill($skill[Extract])) {
-		print("trying to extract");
 		return "skill extract";
 	} else {
 		return "skill saucestorm";
