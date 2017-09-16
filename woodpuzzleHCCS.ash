@@ -30,7 +30,6 @@ void chateau_rest() {
 	if(freeRests > 0) {
 		printd("Resting at chateau");
 		
-		//test
 		visit_url("place.php?whichplace=chateau&action=chateau_restbox");
 	}
 }
