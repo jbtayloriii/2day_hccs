@@ -1,5 +1,12 @@
 print("imported woodpuzzleCombat.ash");
 
+int freeRuns = 0;
+
+int NOVELTY_TROPICAL_SKELETON_ID = $monster[novelty tropical skeleton].id;
+
+boolean [location] kgbBanishLocations;
+boolean [location] snokebombBanishLocations;
+
 //Constants
 boolean [skill] oneTimeSkills = $skills[Entangling Noodles, Extract, Digitize, Compress];
 boolean [item] oneTimeItems = $items[time-spinner];
@@ -47,7 +54,8 @@ string castOTSkill(skill skl) {
 		setSkillFlag(skl, false);
 		return "skill " + skl;	
 	}
-	return "";
+	abort("error casting skill " + skl);
+	return ""; //won't trigger
 }
 
 boolean canUseOTItem(item it) {
@@ -59,7 +67,8 @@ string useOTItem(item it) {
 		setItemFlag(it, false);
 		return "item " + it;
 	}
-	return "";
+	abort("error using item in combat: " + it);
+	return ""; //won't trigger
 }
 
 
@@ -90,9 +99,77 @@ boolean wpc_canTakeHit(monster opp) {
 	}
 }
 
-
 string combatNormal(int round, monster opp, string text) {
 	print("normal combat script");
+	if(canUseOTItem($item[Time-Spinner])) {
+		return useOTItem($item[Time-Spinner]);
+	}
+	
+	if(canCastOTSkill($skill[Entangling Noodles])) {
+		return castOTSkill($skill[Entangling Noodles]);
+	}
+	
+	if(wpc_canTakeHit(opp) && have_skill($skill[Extract])) {
+		return "skill extract";
+	} else {
+		return "skill saucestorm";
+	}
+}
+
+string combatSkeletonStore(int round, monster opp, string text) {
+	if(opp.id == NOVELTY_TROPICAL_SKELETON_ID) {
+		//fight normally
+		return combatNormal(round, opp, text);
+	} else {
+		if(!(kgbBanishLocations contains $location[the skeleton store])) {
+			kgbBanishLocations[$location[the skeleton store]] = true;
+			return "skill KGB tranquilizer dart";
+		} else if(!(snokebombBanishLocations contains $location[the skeleton store])) {
+			snokebombBanishLocations[$location[the skeleton store]] = true;
+			return "skill Snokebomb";
+		} else if(freeRuns < (familiar_weight($familiar[pair of stomping boots]) % 5)) {
+			//run away!
+			freeRuns += 1;
+			return "runaway";
+		} else {
+			abort("trouble with skeleton fight.");
+		}
+	}
+	return ""; //can't
+}
+
+string combatHaikuDungeon(int round, monster opp, string text) {
+	if(opp == $monster[amateur ninja]) {
+		//fight normally
+		return combatNormal(round, opp, text);
+	} else {
+		if(!(kgbBanishLocations contains $location[The Haiku Dungeon])) {
+			kgbBanishLocations[$location[The Haiku Dungeon]] = true;
+			return "skill KGB tranquilizer dart";
+		} else if(!(snokebombBanishLocations contains $location[The Haiku Dungeon])) {
+			snokebombBanishLocations[$location[The Haiku Dungeon]] = true;
+			return "skill Snokebomb";
+		} else if(freeRuns < (familiar_weight($familiar[pair of stomping boots]) % 5)) {
+			//run away!
+			freeRuns += 1;
+			return "runaway";
+		} else {
+			abort("trouble with haiku dungeon fight.");
+		}
+	}
+	return ""; //can't get here
+}
+
+String combatChateau(int round, monster opp, string text) {
+	return "skill saucestorm";
+}
+
+string combatDigitize(int round, monster opp, string text) {
+	print("digitize combat script");
+	if(canCastOTSkill($skill[Digitize])) {
+		return castOTSkill($skill[Digitize]);
+	}
+	
 	if(canUseOTItem($item[Time-Spinner])) {
 		return useOTItem($item[Time-Spinner]);
 	}
